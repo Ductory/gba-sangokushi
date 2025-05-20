@@ -1,0 +1,62 @@
+ROOT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
+SRC_DIR := .
+OBJ_DIR := ./build
+GUI_DIR := .
+CLI_DIR := .
+INC_DIR := $(ROOT_DIR)
+LIB_DIR := $(ROOT_DIR)lib
+
+SRCS = $(wildcard $(SRC_DIR)/*.c)
+OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+GUI_OBJ = $(GUI_SRC:%.c=$(OBJ_DIR)/%.o)
+CLI_OBJ = $(CLI_SRC:%.c=$(OBJ_DIR)/%.o)
+COMMON_SRCS = $(filter-out $(GUI_SRC) $(CLI_SRC), $(SRCS))
+COMMON_OBJS = $(filter-out $(GUI_OBJ) $(CLI_OBJ), $(OBJS))
+DEPS = $(OBJS:.o=.d)
+RCS  = $(wildcard $(SRC_DIR)/*.rc)
+RESS = $(RCS:$(SRC_DIR)/%.rc=$(OBJ_DIR)/%.o)
+
+CC  := gcc
+LD  := gcc
+AR  := ar
+RES := windres
+
+CFLAGS  += -I$(INC_DIR) -MMD -MP -std=gnu23 -O2
+LDFLAGS += -L$(LIB_DIR)
+
+$(shell mkdir -p $(OBJ_DIR) $(GUI_DIR) $(CLI_DIR) $(LIB_DIR))
+
+ifdef GUI_TARGET
+gui : $(GUI_DIR)/$(GUI_TARGET).exe
+
+$(GUI_DIR)/$(GUI_TARGET).exe : $(COMMON_OBJS) $(GUI_OBJ) $(RESS)
+	$(LD) $^ $(LDFLAGS) -mwindows -o $@
+endif
+
+ifdef CLI_TARGET
+cli : $(CLI_DIR)/$(CLI_TARGET).exe
+
+$(CLI_DIR)/$(CLI_TARGET).exe : $(COMMON_OBJS) $(CLI_OBJ)
+	$(LD) $^ $(LDFLAGS) -o $@
+endif
+
+ifdef LIB_TARGET
+lib : $(LIB_DIR)/lib$(LIB_TARGET).a
+
+$(LIB_DIR)/lib$(LIB_TARGET).a : $(OBJS)
+	$(AR) -rcs $@ $^
+endif
+
+$(OBJ_DIR)/%.o : $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/%.o : $(SRC_DIR)/%.rc
+	$(RES) -i $< -o $@
+
+-include $(DEPS)
+
+clean :
+	rm -rf $(OBJ_DIR)/*
+
+.PHONY : gui cli lib clean

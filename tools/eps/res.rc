@@ -1,0 +1,36 @@
+#pragma code_page(65001)
+
+#include <windows.h>
+#include <commctrl.h>
+#include "resource.h"
+
+1 RT_MANIFEST "app.manifest"
+
+// IDD_MANAGER
+
+IDD_MANAGER DIALOGEX 0, 0, 280, 150
+STYLE DS_SHELLFONT | DS_CENTER | WS_OVERLAPPEDWINDOW | WS_VISIBLE
+EXSTYLE WS_EX_ACCEPTFILES
+CAPTION "EPS Manager"
+FONT 8, "MS Shell Dlg"
+{
+    CONTROL "", IDC_LVWEPS, WC_LISTVIEW, LVS_REPORT, 0, 0, 0, 0
+}
+
+IDM_MANAGER MENUEX
+{
+    POPUP "文件"
+    {
+        MENUITEM "打开", IDI_FILE_OPEN
+        MENUITEM "保存", IDI_FILE_SAVE
+    }
+}
+
+IDM_LIST MENUEX
+{
+    POPUP ""
+    {
+        MENUITEM "添加", IDI_ADD_PATCH
+        MENUITEM "删除", IDI_DEL_PATCH
+    }
+}
